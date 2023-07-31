@@ -1,12 +1,7 @@
+using Best_web_application_ever;
 using System.Text.RegularExpressions;
 
-// начальные данные
-List<Person> users = new List<Person>
-{
-    new() { Id = 0, Name = "Tom", Age = 37 },
-    new() { Id = 1, Name = "Bob", Age = 41 },
-    new() { Id = 2, Name = "Sam", Age = 24 }
-};
+
 
 var builder = WebApplication.CreateBuilder();
 var app = builder.Build();
@@ -14,158 +9,25 @@ var app = builder.Build();
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
+
+app.UseMiddleware<UserApiMiddleware>();
+
+// добавл€ем middleware
+//app.UseMiddleware<TokenMiddleware>();
+
 app.Run(async (context) =>
 {
     var response = context.Response;
     var request = context.Request;
-    var path = request.Path;
-    //string expressionForNumber = "^/api/users/([0-9]+)$";   // если id представл€ет число
-
-    // 2e752824-1657-4c7f-844b-6ec2e168e99c
-    string expressionForGuid = @"^/api/users/([0-9]+)$";
-
-    if (path == "/api/users" && request.Method == "GET")
-    {
-        await GetAllPeople(response);
-    }
-    else if (Regex.IsMatch(path, expressionForGuid) && request.Method == "GET")
-    {
-        // получаем id из адреса url
-        int? id = System.Convert.ToInt32(path.Value?.Split("/")[3]);
-        await GetPerson(id, response);
-    }
-    else if (path == "/api/users" && request.Method == "POST")
-    {
-        await CreatePerson(response, request);
-    }
-    else if (path == "/api/users" && request.Method == "PUT")
-    {
-        await UpdatePerson(response, request);
-    }
-    else if (Regex.IsMatch(path, expressionForGuid) && request.Method == "DELETE")
-    {
-        int? id = System.Convert.ToInt32(path.Value?.Split("/")[3]);
-        await DeletePerson(id, response);
-    }
-    else
-    {
-        //if (path == "/js/from_js")
-        //if (path.Value?.Split("/")[1] == "js")
-        //{
-        //    response.ContentType = "application/javascript";
-        //    string file = path.Value?.Split("/")[2];
-        //    if (file != null)
-        //        await response.SendFileAsync($"/js/{file}.js");
-            
-        //}
-
-        response.ContentType = "text/html; charset=utf-8";
-        await response.SendFileAsync("wwwroot/html/index.html");
-    }
+    
+    response.ContentType = "text/html; charset=utf-8";
+    await response.SendFileAsync("wwwroot/html/index.html");
 });
 
 app.Run();
 
 // получение всех пользователей
-async Task GetAllPeople(HttpResponse response)
-{
-    await response.WriteAsJsonAsync(users);
-}
 
-// получение одного пользовател€ по id
-async Task GetPerson(int? id, HttpResponse response)
-{
-    // получаем пользовател€ по id
-    Person? user = users.FirstOrDefault((u) => u.Id == id);
-    // если пользователь найден, отправл€ем его
-    if (user != null)
-        await response.WriteAsJsonAsync(user);
-    // если не найден, отправл€ем статусный код и сообщение об ошибке
-    else
-    {
-        response.StatusCode = 404;
-        await response.WriteAsJsonAsync(new { message = "ѕользователь не найден" });
-    }
-}
-
-async Task DeletePerson(int? id, HttpResponse response)
-{
-    // получаем пользовател€ по id
-    Person? user = users.FirstOrDefault((u) => u.Id == id);
-    // если пользователь найден, удал€ем его
-    if (user != null)
-    {
-        users.Remove(user);
-        await response.WriteAsJsonAsync(user);
-    }
-    // если не найден, отправл€ем статусный код и сообщение об ошибке
-    else
-    {
-        response.StatusCode = 404;
-        await response.WriteAsJsonAsync(new { message = "ѕользователь не найден" });
-    }
-}
-
-async Task CreatePerson(HttpResponse response, HttpRequest request)
-{
-    try
-    {
-        // получаем данные пользовател€
-        var user = await request.ReadFromJsonAsync<Person>();
-        if (user != null)
-        {
-            // устанавливаем id дл€ нового пользовател€
-            user.Id = users.Count;
-            // добавл€ем пользовател€ в список
-            users.Add(user);
-            await response.WriteAsJsonAsync(user);
-        }
-        else
-        {
-            throw new Exception("Ќекорректные данные");
-        }
-    }
-    catch (Exception)
-    {
-        response.StatusCode = 400;
-        await response.WriteAsJsonAsync(new { message = "Ќекорректные данные" });
-    }
-}
-
-async Task UpdatePerson(HttpResponse response, HttpRequest request)
-{
-    try
-    {
-        // получаем данные пользовател€
-        Person? userData = await request.ReadFromJsonAsync<Person>();
-        if (userData != null)
-        {
-            // получаем пользовател€ по id
-            var user = users.FirstOrDefault(u => u.Id == userData.Id);
-            // если пользователь найден, измен€ем его данные и отправл€ем обратно клиенту
-            if (user != null)
-            {
-                user.Age = userData.Age;
-                user.Name = userData.Name;
-                await response.WriteAsJsonAsync(user);
-            }
-            else
-            {
-                response.StatusCode = 404;
-                await response.WriteAsJsonAsync(new { message = "ѕользователь не найден" });
-            }
-        }
-        else
-        {
-            throw new Exception("Ќекорректные данные");
-        }
-    }
-    catch (Exception)
-    {
-        response.StatusCode = 400;
-        await response.WriteAsJsonAsync(new { message = "Ќекорректные данные" });
-    }
-}
 
 
 
