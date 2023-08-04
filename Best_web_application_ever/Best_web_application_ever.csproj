@@ -15,10 +15,4 @@
     <None Include="wwwroot\js\from_js.js" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Controllers\" />
-    <Folder Include="Views\" />
-    <Folder Include="Models\" />
-  </ItemGroup>
-
 </Project>
