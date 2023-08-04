@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v7.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v7.0": {
+      "Best_web_application_ever/1.0.0": {
+        "runtime": {
+          "Best_web_application_ever.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Best_web_application_ever/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
