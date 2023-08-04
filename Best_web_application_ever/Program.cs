@@ -15,6 +15,13 @@ app.UseMiddleware<UserApiMiddleware>();
 // добавляем middleware
 //app.UseMiddleware<TokenMiddleware>();
 
+app.Map("/Time", appBuilder =>
+{
+    var time = DateTime.Now.ToShortTimeString();
+
+    appBuilder.Run(async context => await context.Response.WriteAsync($"Time: {time}"));
+});
+
 app.Run(async (context) =>
 {
     var response = context.Response;
