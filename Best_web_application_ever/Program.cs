@@ -1,25 +1,59 @@
-using Best_web_application_ever;
+using Best_web_application_ever.Middleware;
+using Best_web_application_ever.Services;
 using System.Text.RegularExpressions;
 
 
 
+
 var builder = WebApplication.CreateBuilder();
+
+// AddTransient в ASP .NET - это метод, который используетс€ дл€ регистрации сервиса в контейнере внедрени€ зависимостей с временным жизненным циклом.
+// ќн отвечает за создание нового экземпл€ра сервиса каждый раз, когда он запрашиваетс€!
+
+builder.Services.AddTransient<ShortTimeService>();
+builder.Services.AddTransient<ITimeService, LongTimeService>();
+
+// Transient: при каждом обращении к сервису создаетс€ новый объект сервиса.
+// ¬ течение одного запроса может быть несколько обращений к сервису, соответственно при каждом обращении будет создаватьс€ новый объект.
+// ѕодобна€ модель жизненного цикла наиболее подходит дл€ легковесных сервисов, которые не хран€т данных о состо€нии
+
+// Scoped: дл€ каждого запроса создаетс€ свой объект сервиса.
+// “о есть если в течение одного запроса есть несколько обращений к одному сервису, то при всех этих обращени€х будет использоватьс€ один и тот же объект сервиса.
+
+// Singleton: объект сервиса создаетс€ при первом обращении к нему, все последующие запросы используют один
+// и тот же ранее созданный объект сервиса
+
+// можно ещЄ так
+// builder.Services.AddTransient<ITimeService, LongTimeService>();
+// и тогда обращаемс€ так app.Services.GetService<ITimeService>();
+
+
+builder.Services.AddSingleton<ICountService, SomePlusPlusService>();
+
+builder.Services.AddHostedService<CringeCountService>();
+
 var app = builder.Build();
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
 
+
 app.UseMiddleware<UserApiMiddleware>();
 
-// добавл€ем middleware
-//app.UseMiddleware<TokenMiddleware>();
 
-app.Map("/Time", appBuilder =>
+// добавл€ем middleware с токеном
+// app.UseMiddleware<TokenMiddleware>();
+
+
+
+app.Map("/Amogus", appBuilder =>
 {
-    var time = DateTime.Now.ToShortTimeString();
+    appBuilder.Run(async context => {
 
-    appBuilder.Run(async context => await context.Response.WriteAsync($"Time: {time}"));
+        await context.Response.WriteAsync($"amogus ");
+    
+    });
 });
 
 app.Run(async (context) =>

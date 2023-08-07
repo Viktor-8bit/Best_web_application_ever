@@ -1,4 +1,4 @@
-﻿namespace Best_web_application_ever
+﻿namespace Best_web_application_ever.Middleware
 {
     public class TokenMiddleware
     {

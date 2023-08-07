@@ -1,11 +1,15 @@
-﻿using System.Linq;
+﻿using Best_web_application_ever.Services;
+using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Best_web_application_ever
+namespace Best_web_application_ever.Middleware
 {
     public class UserApiMiddleware
     {
 
+        private ITimeService timeService;
+        private ICountService countService;
+        
         static List<Person> users = new List<Person>
         {
                 new() { Id = 0, Name = "Tom", Age = 37 },
@@ -18,9 +22,11 @@ namespace Best_web_application_ever
         //Класс middleware должен иметь конструктор, который принимает параметр типа RequestDelegate.
         //Через этот параметр можно получить ссылку на тот делегат запроса, который стоит следующим в конвейере обработки запроса.
 
-        public UserApiMiddleware(RequestDelegate next)
+        public UserApiMiddleware(RequestDelegate next, ITimeService timeService, ICountService countService)
         {
             this.next = next;
+            this.timeService = timeService;
+            this.countService = countService;  
         }
 
         // Также в классе должен быть определен метод, который должен называться либо Invoke, либо InvokeAsync.
@@ -45,7 +51,7 @@ namespace Best_web_application_ever
             else if (Regex.IsMatch(path, expressionForGuid) && request.Method == "GET")
             {
                 // получаем id из адреса url
-                int? id = System.Convert.ToInt32(path.Value?.Split("/")[3]);
+                int? id = Convert.ToInt32(path.Value?.Split("/")[3]);
                 await GetPerson(id, response);
             }
             else if (path == "/api/users" && request.Method == "POST")
@@ -58,8 +64,16 @@ namespace Best_web_application_ever
             }
             else if (Regex.IsMatch(path, expressionForGuid) && request.Method == "DELETE")
             {
-                int? id = System.Convert.ToInt32(path.Value?.Split("/")[3]);
+                int? id = Convert.ToInt32(path.Value?.Split("/")[3]);
                 await DeletePerson(id, response);
+            }
+            else if (path == "/api/Time" && request.Method == "GET")
+            {
+                await response.WriteAsync($"{this.timeService.GetTime()}");
+            }
+            else if (path == "/api/Bacground" && request.Method == "GET")
+            {
+                await response.WriteAsync($"{countService.Count}");
             }
             else
             {
