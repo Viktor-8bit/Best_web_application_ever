@@ -3,15 +3,23 @@ using Best_web_application_ever.Services;
 using System.Text.RegularExpressions;
 
 
-
+using Best_web_application_ever.Model.Data;
+using Microsoft.AspNetCore.Authorization;
+using System.Net;
+using System.Security;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
 
 var builder = WebApplication.CreateBuilder();
+
+builder.Services.AddDbContext<ApplicationContext>();
 
 // AddTransient в ASP .NET - это метод, который используется для регистрации сервиса в контейнере внедрения зависимостей с временным жизненным циклом.
 // Он отвечает за создание нового экземпляра сервиса каждый раз, когда он запрашивается!
 
 builder.Services.AddTransient<ShortTimeService>();
 builder.Services.AddTransient<ITimeService, LongTimeService>();
+builder.Services.AddTransient<HashService>();
 
 // Transient: при каждом обращении к сервису создается новый объект сервиса.
 // В течение одного запроса может быть несколько обращений к сервису, соответственно при каждом обращении будет создаваться новый объект.
@@ -28,6 +36,17 @@ builder.Services.AddTransient<ITimeService, LongTimeService>();
 // и тогда обращаемся так app.Services.GetService<ITimeService>();
 
 
+// добавим сервисы аутентификацию (представляет процесс определения пользователя)
+builder.Services.AddAuthentication("Cookies")
+    .AddCookie( options => 
+    { 
+        options.LoginPath = "/login"; 
+        options.LogoutPath = "/logout";
+    } );
+
+// добавляет авторизацию (представляет процесс определения, имеет ли пользователь право доступа к некоторому ресурсу) 
+builder.Services.AddAuthorization();
+
 builder.Services.AddSingleton<ICountService, SomePlusPlusService>();
 
 builder.Services.AddHostedService<CringeCountService>();
@@ -39,31 +58,51 @@ app.UseStaticFiles();
 
 
 
+
+// добавление middleware аутентификации 
+app.UseAuthentication();   
+
+// добавление middleware авторизации 
+app.UseAuthorization();
+
+
+app.UseMiddleware<LoginMidleware>();
+app.UseMiddleware<RegisterMidleware>();
+
+
 app.UseMiddleware<UserApiMiddleware>();
 
-
-// добавляем middleware с токеном
-// app.UseMiddleware<TokenMiddleware>();
-
-
-
-app.Map("/Amogus", appBuilder =>
+app.MapGet("/logout", async (HttpContext context) =>
 {
-    appBuilder.Run(async context => {
-
-        await context.Response.WriteAsync($"amogus ");
-    
-    });
+    var Responce = context.Response;
+    var cookies = Responce.Cookies;
+    await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+    cookies.Delete("user_name");
+    return Results.Redirect("/login");
 });
 
-app.Run(async (context) =>
+app.Map("/hello", [Authorize] () => "Hello World!");
+
+app.Map("/Amogus", async (HttpContext context) =>
 {
-    var response = context.Response;
-    var request = context.Request;
-    
-    response.ContentType = "text/html; charset=utf-8";
-    await response.SendFileAsync("wwwroot/html/index.html");
+
+    var Responce = context.Response;
+    await Responce.WriteAsync("hi i am amgus mice to meet you");
+
 });
+
+
+app.Map("/header", async (HttpContext context) =>
+{
+
+    var Responce = context.Response;
+    Responce.ContentType = "text/html; charset=utf-8";
+    await Responce.SendFileAsync("wwwroot/header.php");
+
+});
+
+
+
 
 app.Run();
 

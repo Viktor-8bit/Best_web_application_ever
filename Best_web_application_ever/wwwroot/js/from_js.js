@@ -1,5 +1,7 @@
 ﻿
 
+
+
 Vue.component('user-table', {
     // Компонент todo-item теперь принимает
     // "prop", то есть входной параметр.
@@ -121,7 +123,7 @@ var UsersTable = new Vue({
     el: '#my_user-table',
     data: {
         uesrsList: [
-            { id: 0, name: 'Амогус', age: 100 }
+           /* { id: 0, name: 'Амогус', age: 100 }*/
         ],
     }
 });
